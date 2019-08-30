@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"os"
+	"time"
 )
 
 func NewClient(address string) *redis.Client {
@@ -26,6 +27,8 @@ func main() {
 	var address = flag.String("host", "", "hostname:port")
 	var getKey = flag.String("get", "", "get key")
 	var deleteKey = flag.String("del", "", "delete key")
+	var putKey = flag.String("putKey", "", "put key")
+	var putValue = flag.String("putValue", "", "put value")
 	var scan = flag.Bool("scan", false, "get all key")
 	flag.Parse()
 
@@ -42,7 +45,7 @@ func main() {
 		for {
 			var keys []string
 			var err error
-			keys, cursor, err = client.Scan(cursor, "20*", 0).Result()
+			keys, cursor, err = client.Scan(cursor, "*", 0).Result()
 			if err != nil {
 				panic(err)
 			}
@@ -67,5 +70,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	} else if *putKey != "" && *putValue != "" {
+		_, err := client.Set(*putKey, *putValue, time.Hour*24).Result()
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		flag.PrintDefaults()
+		os.Exit(0)
 	}
 }
